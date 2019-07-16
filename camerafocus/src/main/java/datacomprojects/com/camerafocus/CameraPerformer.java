@@ -1,7 +1,6 @@
 package datacomprojects.com.camerafocus;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -10,12 +9,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.FloatRange;
@@ -40,11 +37,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Random;
 
-import darthkilersprojects.com.log.L;
 
 import static android.app.Activity.RESULT_OK;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
@@ -74,7 +69,6 @@ public class CameraPerformer implements View.OnClickListener {
     private String cameraErrorBody = "Please remove from background any application which is using camera.";
     private String cameraUnknownErrorTitle = "Error";
     private String cameraunknownErrorBody = "Something was wrong. Please restart camera";
-    private String cameraRefreshText = "Refresh";
     private Fragment fragment;
 
     public CameraPerformer(@NonNull Context context, @NonNull AppCompatActivity appCompatActivity, @NonNull LifecycleOwner lifecycleOwner, Fragment fragment) {
@@ -155,8 +149,6 @@ public class CameraPerformer implements View.OnClickListener {
             throw new RuntimeException("This layout does not contain textView with this ID");
         this.alertCameraErrorRefresh = textView;
         this.alertCameraErrorRefresh.setOnClickListener(this);
-        if(this.alertCameraErrorRefresh.getText()=="")
-            this.alertCameraErrorRefresh.setText(cameraRefreshText);
         return this;
     }
 
@@ -167,10 +159,9 @@ public class CameraPerformer implements View.OnClickListener {
     }
 
     public CameraPerformer build() {
-        L.show(appCompatActivity);
         if (saveImageFilePath == null)
             saveImageFilePath = context.getApplicationInfo().dataDir + "/" + new Random().nextInt() + new Random().nextBoolean() + "___" + new Random().nextDouble();
-        Field[] attributes = CameraPerformer.class.getDeclaredFields();
+        //Field[] attributes = CameraPerformer.class.getDeclaredFields();
         /*for (Field field : attributes) {
             try {
                 if (field.get(this) == null && (field.get(this) instanceof Fragment)) {
@@ -374,9 +365,9 @@ public class CameraPerformer implements View.OnClickListener {
 
     }
 
-    public void setCameraFocusViewResource(@DrawableRes int resId) {
+    /*public void setCameraFocusViewResource(@DrawableRes int resId) {
         cameraFocusView.setImageResource(resId);
-    }
+    }*/
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
@@ -465,13 +456,19 @@ public class CameraPerformer implements View.OnClickListener {
 
     private void requestPermissionCamera() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            appCompatActivity.requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION);
+            if(fragment != null)
+                fragment.requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION);
+            else
+                appCompatActivity.requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION);
         }
     }
 
     private void requestPermissionStorage() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            appCompatActivity.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, GALLERY_PERMISSION);
+            if(fragment != null)
+                fragment.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, GALLERY_PERMISSION);
+            else
+                appCompatActivity.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, GALLERY_PERMISSION);
         }
     }
 
@@ -483,9 +480,9 @@ public class CameraPerformer implements View.OnClickListener {
         return ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
     }
 
-    private <T extends View> T findViewById(@IdRes int id) {
+    /*private <T extends View> T findViewById(@IdRes int id) {
         return appCompatActivity.findViewById(id);
-    }
+    }*/
 
     private static String getRealPathFromURI(Context context, Uri contentUri) {
         try {
