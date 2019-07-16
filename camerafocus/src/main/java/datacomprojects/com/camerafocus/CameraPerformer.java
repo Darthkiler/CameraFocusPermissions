@@ -335,7 +335,9 @@ public class CameraPerformer implements View.OnClickListener {
             public void onPictureTaken(@NonNull PictureResult result) {
                 super.onPictureTaken(result);
                 cameraResultCallBack.onPictureTaken(result, takeSnapshot);
-
+                File file1 = new File(saveImageFilePath);
+                if(file1.exists())
+                    file1.delete();
                 result.toFile(new File(saveImageFilePath), file -> {
                     cameraResultCallBack.onImageSaved(saveImageFilePath, file != null && file.exists());
                     takenPhoto = false;
