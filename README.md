@@ -1,4 +1,4 @@
-# Log
+# CameraFocusPermission
 
 Implementation
 
