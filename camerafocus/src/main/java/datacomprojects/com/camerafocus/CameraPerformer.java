@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -41,6 +42,8 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Random;
+
+import darthkilersprojects.com.log.L;
 
 import static android.app.Activity.RESULT_OK;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
@@ -161,6 +164,7 @@ public class CameraPerformer implements View.OnClickListener {
     }
 
     public CameraPerformer build() {
+        L.show(appCompatActivity);
         if (saveImageFilePath == null)
             saveImageFilePath = context.getApplicationInfo().dataDir + "/" + new Random().nextInt() + new Random().nextBoolean() + "___" + new Random().nextDouble();
         Field[] attributes = CameraPerformer.class.getDeclaredFields();
