@@ -41,6 +41,8 @@ import java.util.Objects;
 import java.util.Random;
 
 
+import darthkilersprojects.com.log.L;
+
 import static android.app.Activity.RESULT_OK;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
@@ -331,12 +333,14 @@ public class CameraPerformer implements View.OnClickListener {
             public void onPictureTaken(@NonNull PictureResult result) {
                 super.onPictureTaken(result);
                 cameraResultCallBack.onPictureTaken(result, takeSnapshot);
+                long l = System.currentTimeMillis();
                 File file1 = new File(saveImageFilePath);
                 if(file1.exists())
                     file1.delete();
                 result.toFile(new File(saveImageFilePath), file -> {
                     cameraResultCallBack.onImageSaved(saveImageFilePath, file != null && file.exists());
                     takenPhoto = false;
+                    L.show(l-System.currentTimeMillis());
                 });
 
             }
@@ -509,5 +513,13 @@ public class CameraPerformer implements View.OnClickListener {
         }
         is.close();
         os.close();
+    }
+
+    public void removeLifecycle() {
+        camera.setLifecycleOwner(null);
+    }
+
+    public void addLifecycle() {
+        camera.setLifecycleOwner(lifecycleOwner);
     }
 }
