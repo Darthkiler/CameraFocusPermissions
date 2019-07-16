@@ -24,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.otaliastudios.cameraview.CameraException;
@@ -74,12 +75,14 @@ public class CameraPerformer implements View.OnClickListener {
     private String cameraUnknownErrorTitle = "Error";
     private String cameraunknownErrorBody = "Something was wrong. Please restart camera";
     private String cameraRefreshText = "Refresh";
+    private Fragment fragment;
 
-    public CameraPerformer(@NonNull Context context, @NonNull AppCompatActivity appCompatActivity, @NonNull LifecycleOwner lifecycleOwner) {
+    public CameraPerformer(@NonNull Context context, @NonNull AppCompatActivity appCompatActivity, @NonNull LifecycleOwner lifecycleOwner, Fragment fragment) {
 
         this.context = context;
         this.appCompatActivity = appCompatActivity;
         this.lifecycleOwner = lifecycleOwner;
+        this.fragment = fragment;
 
         cameraFocusView = new CameraFocusView(context);
 
@@ -168,9 +171,9 @@ public class CameraPerformer implements View.OnClickListener {
         if (saveImageFilePath == null)
             saveImageFilePath = context.getApplicationInfo().dataDir + "/" + new Random().nextInt() + new Random().nextBoolean() + "___" + new Random().nextDouble();
         Field[] attributes = CameraPerformer.class.getDeclaredFields();
-        for (Field field : attributes) {
+        /*for (Field field : attributes) {
             try {
-                if (field.get(this) == null) {
+                if (field.get(this) == null && (field.get(this) instanceof Fragment)) {
                     throw new RuntimeException("Please, initialize all parameters (" + field.getName() + ")");
 
                 }
@@ -178,7 +181,7 @@ public class CameraPerformer implements View.OnClickListener {
                 e.printStackTrace();
             }
 
-        }
+        }*/
         flashButton.setAlpha(INACTIVE_ALPHA_VALUE);
         if (isPermissionsCamera())
             photographerInitialize();
@@ -394,7 +397,11 @@ public class CameraPerformer implements View.OnClickListener {
                             AlertUtils.showCameraPostPermissionAlert(context, () -> {
                                 Intent appSettingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                                         Uri.parse("package:" + context.getPackageName()));
-                                appCompatActivity.startActivityForResult(appSettingsIntent, CAMERA_PERMISSION);
+                                if(fragment!=null)
+                                    fragment.startActivityForResult(appSettingsIntent, CAMERA_PERMISSION);
+                                else
+                                    appCompatActivity.startActivityForResult(appSettingsIntent, CAMERA_PERMISSION);
+
                             },lifecycleOwner);
                     }
                 }
@@ -448,7 +455,10 @@ public class CameraPerformer implements View.OnClickListener {
             chooseFile = new Intent(Intent.ACTION_PICK);
             chooseFile.setType("image/*");
             intent = Intent.createChooser(chooseFile, "choose_a_file");
-            appCompatActivity.startActivityForResult(intent, 1);
+            if(fragment!=null)
+                fragment.startActivityForResult(intent, 1);
+            else
+                appCompatActivity.startActivityForResult(intent, 1);
         } else
             requestPermissionStorage();
     }

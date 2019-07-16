@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity{
         setContentView(R.layout.activity_main);
 
         findViewById(R.id.camera_fragment_take_photo).setOnClickListener(v -> {
-            cameraPerformer = new CameraPerformer(this,this,this)
+            cameraPerformer = new CameraPerformer(this,this,this,null)
                     .setCamera(findViewById(R.id.camera))
                     .setFlashButton(findViewById(R.id.camera_fragment_flash))
                     .setTakePicture(findViewById(R.id.camera_fragment_take_photo))
@@ -52,7 +52,9 @@ public class MainActivity extends AppCompatActivity{
                         @Override
                         public void onBrowseEnd(boolean success, String fileName) {
                             super.onBrowseEnd(success, fileName);
+                            L.show(fileName);
                         }
+
                     })
                     .build();
             //cameraPerformer.setCameraFocusViewResource(R.drawable.ic_launcher_background);
