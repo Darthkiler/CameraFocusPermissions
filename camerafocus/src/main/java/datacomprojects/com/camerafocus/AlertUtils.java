@@ -8,42 +8,49 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.OnLifecycleEvent;
-
-import androidx.lifecycle.LifecycleEventObserver;
 
 import java.util.Locale;
 
 public class AlertUtils {
 
     private static AlertDialog simpleAlertDialog;
+    private static Lifecycle mLifecycle;
+    private static LifecycleObserver lifecycleObserver;
 
-    public static void showCameraPostPermissionAlert(Context context, Runnable positiveRunnable,LifecycleOwner lifecycleOwner){
-        showPostPermissionAlert(context, positiveRunnable, "Camera");
+    public static void showCameraPostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner) {
+        showPostPermissionAlert(context, positiveRunnable, new PermissionUtils("Camera", "%s needs access to %s. To permit %s access, please go to settings", "Settings", "Cancel"));
+
         setLifecycleOwner(lifecycleOwner);
     }
 
-    private static void showPostPermissionAlert(Context context, Runnable positiveRunnable, String permission){
+    public static void showCameraPostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner, PermissionUtils permissionUtils) {
+        if(permissionUtils!=null)
+            showPostPermissionAlert(context, positiveRunnable,permissionUtils);
+        else
+            showCameraPostPermissionAlert(context, positiveRunnable, lifecycleOwner);
+    }
 
-            String body = String.format(Locale.getDefault(),
-                    "%s needs access to %s. To permit %s access, please go to settings",
-                    context.getString(R.string.app_name),
-                    permission,
-                    permission);
+    private static void showPostPermissionAlert(Context context, Runnable positiveRunnable, PermissionUtils permissionUtils) {
+        String body = String.format(Locale.getDefault(),
+                permissionUtils.bodyFormat,
+                context.getString(R.string.app_name),
+                permissionUtils.permission,
+                permissionUtils.permission);
 
-            showAlertWithTwoButtons(context,
-                    body,
-                    "Settings",
-                    positiveRunnable,
-                    "Cancel",
-                    null);
-
+        showAlertWithTwoButtons(context,
+                body,
+                permissionUtils.posButton,
+                positiveRunnable,
+                permissionUtils.negButton,
+                null);
     }
 
     private static void showAlertWithTwoButtons(Context context, String body, final String posButton,
-                                                @NonNull final Runnable posRunnable, String negButton, final Runnable negRunnable){
+                                                @NonNull final Runnable posRunnable, String negButton, final Runnable negRunnable) {
         View view = createView(context);
 
         TextView positiveButton = view.findViewById(R.id.positiveButton);
@@ -62,15 +69,15 @@ public class AlertUtils {
 
         negativeButton.setOnClickListener(v -> {
             simpleAlertDialog.dismiss();
-            if(negRunnable!=null)
+            if (negRunnable != null)
                 negRunnable.run();
         });
 
-        if(!((Activity) context).isFinishing())
+        if (!((Activity) context).isFinishing())
             simpleAlertDialog.show();
     }
 
-    private static View createView(Context context){
+    private static View createView(Context context) {
         //dismissAlerts();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -85,30 +92,40 @@ public class AlertUtils {
         try {
             if (simpleAlertDialog != null && simpleAlertDialog.isShowing())
                 simpleAlertDialog.dismiss();
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+        }
 
         dismissLifeCycle();
     }
 
     private static void dismissLifeCycle() {
-        mLifecycle=null;
+        mLifecycle = null;
     }
-
-    private static Lifecycle mLifecycle;
-
-    private static LifecycleObserver lifecycleObserver;
-
 
     private static void setLifecycleOwner(LifecycleOwner owner) {
         if (mLifecycle != null)
             mLifecycle.removeObserver(lifecycleObserver);
-        if(owner != null)
+        if (owner != null)
             mLifecycle = owner.getLifecycle();
         lifecycleObserver = (LifecycleEventObserver) (source, event) -> {
-            if(event== Lifecycle.Event.ON_PAUSE)
+            if (event == Lifecycle.Event.ON_PAUSE)
                 dismissAlerts();
         };
-        if(mLifecycle!=null)
+        if (mLifecycle != null)
             mLifecycle.addObserver(lifecycleObserver);
+    }
+
+    public static class PermissionUtils {
+        String permission;
+        String bodyFormat;
+        String posButton;
+        String negButton;
+
+        public PermissionUtils(String permission, String bodyFormat, String posButton, String negButton) {
+            this.permission = permission;
+            this.bodyFormat = bodyFormat;
+            this.posButton = posButton;
+            this.negButton = negButton;
+        }
     }
 }

@@ -68,8 +68,15 @@ public class CameraPerformer implements View.OnClickListener {
     private String cameraErrorTitle = "Camera initialization error!";
     private String cameraErrorBody = "Please remove from background any application which is using camera.";
     private String cameraUnknownErrorTitle = "Error";
-    private String cameraunknownErrorBody = "Something was wrong. Please restart camera";
+    private String cameraUnknownErrorBody = "Something was wrong. Please restart camera";
     private Fragment fragment;
+
+    public CameraPerformer setPermissionUtils(AlertUtils.PermissionUtils permissionUtils) {
+        this.permissionUtils = permissionUtils;
+        return this;
+    }
+
+    private AlertUtils.PermissionUtils permissionUtils;
 
     public CameraPerformer(@NonNull Context context, @NonNull AppCompatActivity appCompatActivity, @NonNull LifecycleOwner lifecycleOwner, Fragment fragment) {
 
@@ -161,18 +168,7 @@ public class CameraPerformer implements View.OnClickListener {
     public CameraPerformer build() {
         if (saveImageFilePath == null)
             saveImageFilePath = context.getApplicationInfo().dataDir + "/" + new Random().nextInt() + new Random().nextBoolean() + "___" + new Random().nextDouble();
-        //Field[] attributes = CameraPerformer.class.getDeclaredFields();
-        /*for (Field field : attributes) {
-            try {
-                if (field.get(this) == null && (field.get(this) instanceof Fragment)) {
-                    throw new RuntimeException("Please, initialize all parameters (" + field.getName() + ")");
 
-                }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-
-        }*/
         flashButton.setAlpha(INACTIVE_ALPHA_VALUE);
         if (isPermissionsCamera())
             photographerInitialize();
@@ -312,7 +308,7 @@ public class CameraPerformer implements View.OnClickListener {
                     alertCameraErrorBody.setText(cameraErrorBody);
                 } else {
                     alertCameraErrorTitle.setText(cameraUnknownErrorTitle);
-                    alertCameraErrorBody.setText(cameraunknownErrorBody);
+                    alertCameraErrorBody.setText(cameraUnknownErrorBody);
                 }
 
                 switch (reason) {
@@ -376,7 +372,6 @@ public class CameraPerformer implements View.OnClickListener {
         if (grantResults.length == 0)
             return;
 
-
         switch (requestCode) {
 
             case CAMERA_PERMISSION:
@@ -395,7 +390,7 @@ public class CameraPerformer implements View.OnClickListener {
                                 else
                                     appCompatActivity.startActivityForResult(appSettingsIntent, CAMERA_PERMISSION);
 
-                            },lifecycleOwner);
+                            },lifecycleOwner,permissionUtils);
                     }
                 }
                 break;
