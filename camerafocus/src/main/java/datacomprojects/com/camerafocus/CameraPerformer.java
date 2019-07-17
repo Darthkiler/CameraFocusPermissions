@@ -122,11 +122,13 @@ public class CameraPerformer implements View.OnClickListener {
 
     public CameraPerformer setTakePicture(ImageView takePicture) {
         this.takePicture = takePicture;
+        this.takePicture.setOnClickListener(this);
         return this;
     }
 
     public CameraPerformer setFlashButton(ImageView flashButton) {
         this.flashButton = flashButton;
+        this.flashButton.setOnClickListener(this);
         return this;
     }
 
