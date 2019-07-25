@@ -91,6 +91,14 @@ public class CameraPerformer implements View.OnClickListener {
 
     }
 
+    public void disableTakePhotoListener() {
+        takePicture.setOnClickListener(null);
+    }
+
+    public void enableTakePhotoListener() {
+        takePicture.setOnClickListener(this);
+    }
+
     public CameraPerformer setInactiveAlphaValue(@FloatRange(from = 0.0, to = 1.0) float inactiveAlphaValue) {
         USER_INACTIVE_ALPHA_VALUE = inactiveAlphaValue;
         flashButton.setAlpha(USER_INACTIVE_ALPHA_VALUE);
