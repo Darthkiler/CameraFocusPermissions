@@ -91,14 +91,6 @@ public class CameraPerformer implements View.OnClickListener {
 
     }
 
-    public void disableTakePhotoListener() {
-        takePicture.setOnClickListener(null);
-    }
-
-    public void enableTakePhotoListener() {
-        takePicture.setOnClickListener(this);
-    }
-
     public CameraPerformer setInactiveAlphaValue(@FloatRange(from = 0.0, to = 1.0) float inactiveAlphaValue) {
         USER_INACTIVE_ALPHA_VALUE = inactiveAlphaValue;
         flashButton.setAlpha(USER_INACTIVE_ALPHA_VALUE);
@@ -417,7 +409,7 @@ public class CameraPerformer implements View.OnClickListener {
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
+        isBrowse = false;
         switch (requestCode) {
 
             case 1:
@@ -449,18 +441,23 @@ public class CameraPerformer implements View.OnClickListener {
 
     }
 
+    private boolean isBrowse = false;
+
     private void onBrowse() {
         if (isPermissionsStorage()) {
-            cameraResultCallBack.onBrowse();
-            Intent chooseFile;
-            Intent intent;
-            chooseFile = new Intent(Intent.ACTION_PICK);
-            chooseFile.setType("image/*");
-            intent = Intent.createChooser(chooseFile, "choose_a_file");
-            if(fragment!=null)
-                fragment.startActivityForResult(intent, 1);
-            else
-                appCompatActivity.startActivityForResult(intent, 1);
+            if(!isBrowse) {
+                cameraResultCallBack.onBrowse();
+                Intent chooseFile;
+                Intent intent;
+                chooseFile = new Intent(Intent.ACTION_PICK);
+                chooseFile.setType("image/*");
+                intent = Intent.createChooser(chooseFile, "choose_a_file");
+                if (fragment != null)
+                    fragment.startActivityForResult(intent, 1);
+                else
+                    appCompatActivity.startActivityForResult(intent, 1);
+                isBrowse = true;
+            }
         } else
             requestPermissionStorage();
     }
