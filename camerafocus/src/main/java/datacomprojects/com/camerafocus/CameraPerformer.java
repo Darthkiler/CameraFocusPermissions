@@ -416,7 +416,7 @@ public class CameraPerformer implements View.OnClickListener {
                 if (resultCode != RESULT_OK || data == null)
                     break;
 
-                takenPhoto = true;
+                takenPhoto = false;
                 Uri uri = data.getData();
                 String filePath = getRealPathFromURI(context, uri);
 
