@@ -200,6 +200,7 @@ public class CameraPerformer implements View.OnClickListener {
             if (alertCameraError.getVisibility() == View.VISIBLE)
                 new Shaker(alertCameraError).shake();
             else {
+                cameraResultCallBack.onStartTakePhoto();
                 if (takeSnapshot)
                     camera.takePictureSnapshot();
                 else

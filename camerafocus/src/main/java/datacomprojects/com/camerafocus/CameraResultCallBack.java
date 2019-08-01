@@ -13,6 +13,10 @@ import com.otaliastudios.cameraview.VideoResult;
 
 public class CameraResultCallBack {
 
+    @CallSuper
+    public void onStartTakePhoto() {
+
+    }
 
     @CallSuper
     public void onCameraOpened(@NonNull CameraOptions options) {
