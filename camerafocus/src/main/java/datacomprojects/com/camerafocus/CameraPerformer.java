@@ -1,6 +1,7 @@
 package datacomprojects.com.camerafocus;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -229,7 +230,7 @@ public class CameraPerformer implements View.OnClickListener {
         }
 
         if (v.getId() == alertCameraErrorRefresh.getId()) {
-            photographerInitialize();
+            ((Activity)context).finish();
         }
     }
 
@@ -316,7 +317,11 @@ public class CameraPerformer implements View.OnClickListener {
                     alertCameraErrorBody.setText(cameraUnknownErrorBody);
                 }
 
-                switch (reason) {
+                takePicture.setOnClickListener(CameraPerformer.this);
+                alertCameraError.setVisibility(View.VISIBLE);
+                takenPhoto = false;
+
+                /*switch (reason) {
                     case CameraException.REASON_PICTURE_FAILED:
                         //AlertUtils.showErrorAlert(context, AlertUtils.TYPE_TAKE_PICTURE_ERROR);
                         break;
@@ -324,10 +329,8 @@ public class CameraPerformer implements View.OnClickListener {
                         camera.close();
                         camera.destroy();
                     default:
-                        takePicture.setOnClickListener(CameraPerformer.this);
-                        alertCameraError.setVisibility(View.VISIBLE);
-                        takenPhoto = false;
-                }
+
+                }*/
 
                 cameraResultCallBack.onCameraError(exception);
             }
@@ -521,13 +524,5 @@ public class CameraPerformer implements View.OnClickListener {
         }
         is.close();
         os.close();
-    }
-
-    public void removeLifecycle() {
-        camera.setLifecycleOwner(null);
-    }
-
-    public void addLifecycle() {
-        camera.setLifecycleOwner(lifecycleOwner);
     }
 }
