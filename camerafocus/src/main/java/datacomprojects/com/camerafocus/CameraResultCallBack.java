@@ -79,7 +79,13 @@ public class CameraResultCallBack {
 
     }
 
+    @CallSuper
     public void onBrowseEnd(boolean success, String fileName) {
+
+    }
+
+    @CallSuper
+    public void onTorchStateShanged(boolean torchOn) {
 
     }
 }

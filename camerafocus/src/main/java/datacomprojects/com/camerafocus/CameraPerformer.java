@@ -31,6 +31,7 @@ import com.otaliastudios.cameraview.CameraOptions;
 import com.otaliastudios.cameraview.CameraView;
 import com.otaliastudios.cameraview.Flash;
 import com.otaliastudios.cameraview.PictureResult;
+import com.otaliastudios.cameraview.Preview;
 import com.otaliastudios.cameraview.VideoResult;
 
 import java.io.File;
@@ -45,12 +46,13 @@ import java.util.Random;
 import darthkilersprojects.com.log.L;
 
 import static android.app.Activity.RESULT_OK;
+import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 public class CameraPerformer implements View.OnClickListener {
     private static final float INACTIVE_ALPHA_VALUE = 0.3f;
-    private static final int CAMERA_PERMISSION = 3;
-    private static final int GALLERY_PERMISSION = 4;
+    public static final int CAMERA_PERMISSION = 3;
+    public static final int GALLERY_PERMISSION = 4;
     private static float USER_INACTIVE_ALPHA_VALUE = -1f;
     private boolean takeSnapshot = false;
     private String saveImageFilePath;
@@ -237,8 +239,10 @@ public class CameraPerformer implements View.OnClickListener {
     private void flash() {
         if (alertCameraError.getVisibility() == View.VISIBLE)
             new Shaker(alertCameraError).shake();
-        else
+        else {
             camera.setFlash(camera.getFlash().equals(Flash.OFF) ? Flash.TORCH : Flash.OFF);
+            cameraResultCallBack.onTorchStateShanged(camera.getFlash().equals(Flash.TORCH));
+        }
     }
 
     public CameraPerformer setCameraResultCallBack(CameraResultCallBack cameraResultCallBack) {
@@ -249,7 +253,7 @@ public class CameraPerformer implements View.OnClickListener {
     private void photographerInitialize() {
 
         camera.setLifecycleOwner(lifecycleOwner);
-
+        camera.setPreview(Preview.TEXTURE);
         alertCameraError.setVisibility(View.GONE);
 
         camera.addCameraListener(new CameraListener() {
@@ -373,9 +377,9 @@ public class CameraPerformer implements View.OnClickListener {
 
     }
 
-    /*public void setCameraFocusViewResource(@DrawableRes int resId) {
+    public void setCameraFocusViewResource(@DrawableRes int resId) {
         cameraFocusView.setImageResource(resId);
-    }*/
+    }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
@@ -492,10 +496,6 @@ public class CameraPerformer implements View.OnClickListener {
         return ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
     }
 
-    /*private <T extends View> T findViewById(@IdRes int id) {
-        return appCompatActivity.findViewById(id);
-    }*/
-
     private static String getRealPathFromURI(Context context, Uri contentUri) {
         try {
             Cursor cursor = context.getContentResolver().query(contentUri, new String[] {MediaStore.Images.Media.DATA}, null, null, null);
@@ -524,5 +524,15 @@ public class CameraPerformer implements View.OnClickListener {
         }
         is.close();
         os.close();
+    }
+
+    public void addLifecycle() {
+        if(isPermissionsCamera())
+            camera.setLifecycleOwner(lifecycleOwner);
+    }
+
+    public void closeCameraAndRemoveLifecycle() {
+        camera.close();
+        lifecycleOwner.getLifecycle().removeObserver(camera);
     }
 }
