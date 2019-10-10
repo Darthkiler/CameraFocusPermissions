@@ -1,4 +1,4 @@
-package datacomprojects.com.camerafocus;
+package datacomprojects.com.camerafocus.utils;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -10,6 +10,8 @@ import android.graphics.PointF;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
+
+import datacomprojects.com.camerafocus.R;
 
 
 public class CameraFocusView extends androidx.appcompat.widget.AppCompatImageView {

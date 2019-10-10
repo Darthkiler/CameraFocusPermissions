@@ -1,4 +1,4 @@
-package datacomprojects.com.camerafocus;
+package datacomprojects.com.camerafocus.utils;
 
 import android.graphics.PointF;
 
@@ -85,7 +85,7 @@ public class CameraResultCallBack {
     }
 
     @CallSuper
-    public void onTorchStateShanged(boolean torchOn) {
+    public void onTorchStateChanged(boolean torchOn) {
 
     }
 }

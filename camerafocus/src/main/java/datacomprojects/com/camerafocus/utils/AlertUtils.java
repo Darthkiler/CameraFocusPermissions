@@ -1,4 +1,4 @@
-package datacomprojects.com.camerafocus;
+package datacomprojects.com.camerafocus.utils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -15,6 +15,8 @@ import androidx.lifecycle.OnLifecycleEvent;
 
 import java.util.Locale;
 
+import datacomprojects.com.camerafocus.R;
+
 public class AlertUtils {
 
     private static AlertDialog simpleAlertDialog;
@@ -22,19 +24,19 @@ public class AlertUtils {
     private static LifecycleObserver lifecycleObserver;
 
     public static void showCameraPostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner) {
-        showPostPermissionAlert(context, positiveRunnable, new PermissionUtils("Camera", "%s needs access to %s. To permit %s access, please go to settings", "Settings", "Cancel"));
+        showPostPermissionAlert(context, positiveRunnable, new PostPermissionUtils("Camera", "%s needs access to %s. To permit %s access, please go to settings", "Settings", "Cancel"));
 
         setLifecycleOwner(lifecycleOwner);
     }
 
-    public static void showCameraPostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner, PermissionUtils permissionUtils) {
+    public static void showCameraPostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner, PostPermissionUtils permissionUtils) {
         if(permissionUtils!=null)
             showPostPermissionAlert(context, positiveRunnable,permissionUtils);
         else
             showCameraPostPermissionAlert(context, positiveRunnable, lifecycleOwner);
     }
 
-    private static void showPostPermissionAlert(Context context, Runnable positiveRunnable, PermissionUtils permissionUtils) {
+    private static void showPostPermissionAlert(Context context, Runnable positiveRunnable, PostPermissionUtils permissionUtils) {
         String body = String.format(Locale.getDefault(),
                 permissionUtils.bodyFormat,
                 context.getString(R.string.app_name),
@@ -115,13 +117,13 @@ public class AlertUtils {
             mLifecycle.addObserver(lifecycleObserver);
     }
 
-    public static class PermissionUtils {
+    public static class PostPermissionUtils {
         String permission;
         String bodyFormat;
         String posButton;
         String negButton;
 
-        public PermissionUtils(String permission, String bodyFormat, String posButton, String negButton) {
+        public PostPermissionUtils(String permission, String bodyFormat, String posButton, String negButton) {
             this.permission = permission;
             this.bodyFormat = bodyFormat;
             this.posButton = posButton;

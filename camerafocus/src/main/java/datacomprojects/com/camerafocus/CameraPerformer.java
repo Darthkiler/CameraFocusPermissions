@@ -13,7 +13,7 @@ import android.provider.Settings;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.FloatRange;
@@ -23,7 +23,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.OnLifecycleEvent;
 
 import com.otaliastudios.cameraview.CameraException;
 import com.otaliastudios.cameraview.CameraListener;
@@ -43,63 +45,107 @@ import java.util.Objects;
 import java.util.Random;
 
 
-import darthkilersprojects.com.log.L;
+import datacomprojects.com.camerafocus.utils.AlertUtils;
+import datacomprojects.com.camerafocus.utils.CameraFocusView;
+import datacomprojects.com.camerafocus.utils.CameraResultCallBack;
+import datacomprojects.com.camerafocus.utils.ErrorAlert;
 
 import static android.app.Activity.RESULT_OK;
-import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
-public class CameraPerformer implements View.OnClickListener {
+public class CameraPerformer {
+
+    //default value for all inactive elements
     private static final float INACTIVE_ALPHA_VALUE = 0.3f;
+
+    //constants for request permissions
     public static final int CAMERA_PERMISSION = 3;
+
     public static final int GALLERY_PERMISSION = 4;
+
+    public static final int BROWSE_REQUEST_CODE = 5;
+
+    //value for all inactive elements defined by user (default = -1)
     private static float USER_INACTIVE_ALPHA_VALUE = -1f;
+
+    /*
+        The variable is responsible for the type of image
+        If the variable takes the value true, then a snapshot will be created
+        If the variable takes a false value, a normal photo will be created
+        Initial value is false
+     */
     private boolean takeSnapshot = false;
+
+    /*
+        The path where the picture will be saved
+        If the value is not specified, the path will be created randomly 1 time per instance of the object
+        If you specify the path to external storage, in the absence of permission to read and write to external storage, an exception will be thrown
+     */
     private String saveImageFilePath;
+
+    //Instance of the camera object that is being processed
     private CameraView camera;
-    private ViewGroup alertCameraError;
+
+    //View for take photo event
     private ImageView takePicture;
-    private ImageView flashButton;
+
+    //View for import image event
     private ImageView browseImageView;
-    private TextView alertCameraErrorRefresh;
-    private TextView alertCameraErrorTitle;
-    private TextView alertCameraErrorBody;
+
+    //ImageView for torch
+    private ImageView flashButton;
+
+    //View for focus
     private CameraFocusView cameraFocusView;
+
+    //context
     private Context context;
+
+    //Activity context
     private AppCompatActivity appCompatActivity;
+
+    //Activity lifecycle owner
     private LifecycleOwner lifecycleOwner;
+
+    //Callback for important camera events
     private CameraResultCallBack cameraResultCallBack;
+
+    //the variable is responsible for blocking some processes in the image processing
     private boolean takenPhoto = false;
-    private String cameraErrorTitle = "Camera initialization error!";
-    private String cameraErrorBody = "Please remove from background any application which is using camera.";
-    private String cameraUnknownErrorTitle = "Error";
-    private String cameraUnknownErrorBody = "Something was wrong. Please restart camera";
+
+    //object for working with a camera error alert (not shown by default)
+    private ErrorAlert errorAlert = new ErrorAlert(false);
+
+    //a fragment, if not equal to NULL, intercepts all lifecycle methods
     private Fragment fragment;
 
-    public CameraPerformer setPermissionUtils(AlertUtils.PermissionUtils permissionUtils) {
-        this.permissionUtils = permissionUtils;
-        return this;
-    }
+    private AlertUtils.PostPermissionUtils permissionUtils;
 
-    private AlertUtils.PermissionUtils permissionUtils;
+    //
+    private boolean isBrowse = false;
 
-    public CameraPerformer(@NonNull Context context, @NonNull AppCompatActivity appCompatActivity, @NonNull LifecycleOwner lifecycleOwner, Fragment fragment) {
-
+    /*
+        constructor with parameters - context, activate lifecycle and fragment
+        if the fragment is != null, the fragment lifecycle will be used
+        also initializes view for focus
+     */
+    public CameraPerformer(@NonNull Context context, @NonNull AppCompatActivity appCompatActivity, @NonNull LifecycleOwner lifecycleOwner,@Nullable Fragment fragment) {
         this.context = context;
         this.appCompatActivity = appCompatActivity;
         this.lifecycleOwner = lifecycleOwner;
         this.fragment = fragment;
 
         cameraFocusView = new CameraFocusView(context);
-
     }
 
+    //set inactive alpha value for flash button
     public CameraPerformer setInactiveAlphaValue(@FloatRange(from = 0.0, to = 1.0) float inactiveAlphaValue) {
         USER_INACTIVE_ALPHA_VALUE = inactiveAlphaValue;
         flashButton.setAlpha(USER_INACTIVE_ALPHA_VALUE);
         return this;
     }
 
+    //set the path where the picture will be saved
     public void setSaveImageFilePath(@NonNull String saveImageFilePath) {
         this.saveImageFilePath = saveImageFilePath;
     }
@@ -109,8 +155,9 @@ public class CameraPerformer implements View.OnClickListener {
         return this;
     }
 
-    public void setFlashImageResource(@DrawableRes int idRes) {
+    public CameraPerformer setFlashImageResource(@DrawableRes int idRes) {
         flashButton.setImageResource(idRes);
+        return this;
     }
 
     public CameraPerformer setCamera(CameraView camera) {
@@ -119,56 +166,61 @@ public class CameraPerformer implements View.OnClickListener {
     }
 
     public CameraPerformer setAlertCameraError(ViewGroup alertCameraError) {
-        this.alertCameraError = alertCameraError;
+        this.errorAlert.setParent(alertCameraError);
         return this;
     }
 
     public CameraPerformer setTakePicture(ImageView takePicture) {
         this.takePicture = takePicture;
-        this.takePicture.setOnClickListener(this);
+        this.takePicture.setOnClickListener(this::onClick);
         return this;
     }
 
     public CameraPerformer setFlashButton(ImageView flashButton) {
         this.flashButton = flashButton;
-        this.flashButton.setOnClickListener(this);
+        this.flashButton.setOnClickListener(this::onClick);
         return this;
     }
 
     public CameraPerformer setAlertCameraErrorTitle(@IdRes int textViewId) {
-        if (alertCameraError == null)
-            throw new RuntimeException("Please, indicate ID for error layout");
-        TextView textView = alertCameraError.findViewById(textViewId);
-        if (textView == null)
-            throw new RuntimeException("This layout does not contain textView with this ID");
-        this.alertCameraErrorTitle = textView;
+        errorAlert.setAlertCameraErrorTitleID(textViewId);
         return this;
     }
 
     public CameraPerformer setAlertCameraErrorBody(@IdRes int textViewId) {
-        if (alertCameraError == null)
-            throw new RuntimeException("Please, indicate ID for error layout");
-        TextView textView = alertCameraError.findViewById(textViewId);
-        if (textView == null)
-            throw new RuntimeException("This layout does not contain textView with this ID");
-        this.alertCameraErrorBody = textView;
+        errorAlert.setAlertCameraErrorBodyID(textViewId);
         return this;
     }
 
-    public CameraPerformer setAlertCameraErrorRefresh(@IdRes int textViewId) {
-        if (alertCameraError == null)
-            throw new RuntimeException("Please, indicate ID for error layout");
-        TextView textView = alertCameraError.findViewById(textViewId);
-        if (textView == null)
-            throw new RuntimeException("This layout does not contain textView with this ID");
-        this.alertCameraErrorRefresh = textView;
-        this.alertCameraErrorRefresh.setOnClickListener(this);
+    public CameraPerformer setAlertCameraErrorPositive(@IdRes int textViewId) {
+        errorAlert.setAlertCameraErrorPositiveID(textViewId);
+        errorAlert.setPositiveClickListener(v -> ((Activity)context).finish());
         return this;
     }
 
     public CameraPerformer setBrowseImageView(ImageView browseImageView) {
         this.browseImageView = browseImageView;
-        browseImageView.setOnClickListener(this);
+        browseImageView.setOnClickListener(this::onClick);
+        return this;
+    }
+
+    public CameraPerformer setPermissionUtils(AlertUtils.PostPermissionUtils permissionUtils) {
+        this.permissionUtils = permissionUtils;
+        return this;
+    }
+
+    public CameraPerformer setShowErrorAlert(boolean showErrorAlert) {
+        errorAlert.setNeedToShow(showErrorAlert);
+        return this;
+    }
+
+    public CameraPerformer setCameraResultCallBack(CameraResultCallBack cameraResultCallBack) {
+        this.cameraResultCallBack = cameraResultCallBack;
+        return this;
+    }
+
+    public CameraPerformer setCameraFocusViewResource(@DrawableRes int resId) {
+        cameraFocusView.setImageResource(resId);
         return this;
     }
 
@@ -187,10 +239,7 @@ public class CameraPerformer implements View.OnClickListener {
     private void makeFlashUnavailable() {
         if (flashButton.hasOnClickListeners()) {
             flashButton.setOnClickListener(null);
-            if (USER_INACTIVE_ALPHA_VALUE == -1f)
-                flashButton.setAlpha(INACTIVE_ALPHA_VALUE);
-            else
-                flashButton.setAlpha(USER_INACTIVE_ALPHA_VALUE);
+            flashButton.setAlpha(USER_INACTIVE_ALPHA_VALUE == -1f ? INACTIVE_ALPHA_VALUE : USER_INACTIVE_ALPHA_VALUE);
         }
     }
 
@@ -199,9 +248,8 @@ public class CameraPerformer implements View.OnClickListener {
             return;
 
         if (isPermissionsCamera()) {
-
-            if (alertCameraError.getVisibility() == View.VISIBLE)
-                new Shaker(alertCameraError).shake();
+            if (errorAlert.isNeedToShow() && errorAlert.isVisible())
+                errorAlert.shake();
             else {
                 cameraResultCallBack.onStartTakePhoto();
                 if (takeSnapshot)
@@ -214,49 +262,45 @@ public class CameraPerformer implements View.OnClickListener {
             requestPermissionCamera();
     }
 
-    @Override
-    public void onClick(View v) {
-        if (v.getId() == takePicture.getId()) {
+    private void onClick(View v) {
+        if (takePicture != null && v.getId() == takePicture.getId()) {
             takePhoto();
             return;
         }
 
-        if (v.getId() == flashButton.getId()) {
+        if (flashButton != null && v.getId() == flashButton.getId()) {
             flash();
             return;
         }
 
-        if (v.getId() == browseImageView.getId()) {
+        if (browseImageView != null && v.getId() == browseImageView.getId()) {
             onBrowse();
-            return;
-        }
-
-        if (v.getId() == alertCameraErrorRefresh.getId()) {
-            ((Activity)context).finish();
         }
     }
 
     private void flash() {
-        if (alertCameraError.getVisibility() == View.VISIBLE)
-            new Shaker(alertCameraError).shake();
-        else {
-            camera.setFlash(camera.getFlash().equals(Flash.OFF) ? Flash.TORCH : Flash.OFF);
-            cameraResultCallBack.onTorchStateShanged(camera.getFlash().equals(Flash.TORCH));
-        }
-    }
-
-    public CameraPerformer setCameraResultCallBack(CameraResultCallBack cameraResultCallBack) {
-        this.cameraResultCallBack = cameraResultCallBack;
-        return this;
+        if (isPermissionsCamera()) {
+            if (errorAlert.isNeedToShow() && errorAlert.isVisible())
+                errorAlert.shake();
+            else {
+                camera.setFlash(camera.getFlash().equals(Flash.OFF) ? Flash.TORCH : Flash.OFF);
+                callTorchChangeCallback();
+            }
+        } else
+            requestPermissionCamera();
     }
 
     private void photographerInitialize() {
 
         camera.setLifecycleOwner(lifecycleOwner);
         camera.setPreview(Preview.TEXTURE);
-        alertCameraError.setVisibility(View.GONE);
+        if(errorAlert.isNeedToShow())
+            errorAlert.setVisibility(View.GONE);
+
+        callTorchChangeCallback();
 
         camera.addCameraListener(new CameraListener() {
+
             @Override
             public void onVideoTaken(@NonNull VideoResult result) {
                 super.onVideoTaken(result);
@@ -287,12 +331,12 @@ public class CameraPerformer implements View.OnClickListener {
 
                 if (options.getSupportedFlash().contains(Flash.TORCH)) {
                     flashButton.setAlpha(1f);
-                    flashButton.setOnClickListener(CameraPerformer.this);
+                    flashButton.setOnClickListener(CameraPerformer.this::onClick);
                 }
 
                 camera.setZoom(0);
 
-                takePicture.setOnClickListener(CameraPerformer.this);
+                takePicture.setOnClickListener(CameraPerformer.this::onClick);
                 cameraResultCallBack.onCameraOpened(options);
 
             }
@@ -313,28 +357,24 @@ public class CameraPerformer implements View.OnClickListener {
 
                 int reason = exception.getReason();
 
-                if (reason == CameraException.REASON_FAILED_TO_CONNECT || reason == CameraException.REASON_FAILED_TO_START_PREVIEW) {
-                    alertCameraErrorTitle.setText(cameraErrorTitle);
-                    alertCameraErrorBody.setText(cameraErrorBody);
-                } else {
-                    alertCameraErrorTitle.setText(cameraUnknownErrorTitle);
-                    alertCameraErrorBody.setText(cameraUnknownErrorBody);
+                switch (reason) {
+                    case CameraException.REASON_FAILED_TO_CONNECT:
+                    case CameraException.REASON_FAILED_TO_START_PREVIEW:
+                        if(errorAlert.isNeedToShow())
+                            errorAlert.showErrorAlert();
+                        break;
+                    case CameraException.REASON_PICTURE_FAILED:
+                        Toast.makeText(context,"Take picture error",Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        if(errorAlert.isNeedToShow())
+                            errorAlert.showUnknownErrorAlert();
                 }
 
-                takePicture.setOnClickListener(CameraPerformer.this);
-                alertCameraError.setVisibility(View.VISIBLE);
+                takePicture.setOnClickListener(CameraPerformer.this::onClick);
+                if(errorAlert.isNeedToShow())
+                    errorAlert.setVisibility(View.VISIBLE);
                 takenPhoto = false;
-
-                /*switch (reason) {
-                    case CameraException.REASON_PICTURE_FAILED:
-                        //AlertUtils.showErrorAlert(context, AlertUtils.TYPE_TAKE_PICTURE_ERROR);
-                        break;
-                    case CameraException.REASON_UNKNOWN:
-                        camera.close();
-                        camera.destroy();
-                    default:
-
-                }*/
 
                 cameraResultCallBack.onCameraError(exception);
             }
@@ -343,16 +383,13 @@ public class CameraPerformer implements View.OnClickListener {
             public void onPictureTaken(@NonNull PictureResult result) {
                 super.onPictureTaken(result);
                 cameraResultCallBack.onPictureTaken(result, takeSnapshot);
-                long l = System.currentTimeMillis();
                 File file1 = new File(saveImageFilePath);
                 if(file1.exists())
                     file1.delete();
                 result.toFile(new File(saveImageFilePath), file -> {
                     cameraResultCallBack.onImageSaved(saveImageFilePath, file != null && file.exists());
                     takenPhoto = false;
-                    L.show(l-System.currentTimeMillis());
                 });
-
             }
 
             @Override
@@ -377,8 +414,8 @@ public class CameraPerformer implements View.OnClickListener {
 
     }
 
-    public void setCameraFocusViewResource(@DrawableRes int resId) {
-        cameraFocusView.setImageResource(resId);
+    private void callTorchChangeCallback() {
+        cameraResultCallBack.onTorchStateChanged(camera.getFlash().equals(Flash.TORCH));
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -393,7 +430,7 @@ public class CameraPerformer implements View.OnClickListener {
                     takePicture.setOnClickListener(null);
                     photographerInitialize();
                 } else {
-                    takePicture.setOnClickListener(CameraPerformer.this);
+                    takePicture.setOnClickListener(CameraPerformer.this::onClick);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         if(!appCompatActivity.shouldShowRequestPermissionRationale(permissions[0]))
                             AlertUtils.showCameraPostPermissionAlert(context, () -> {
@@ -420,7 +457,7 @@ public class CameraPerformer implements View.OnClickListener {
         isBrowse = false;
         switch (requestCode) {
 
-            case 1:
+            case BROWSE_REQUEST_CODE:
                 if (resultCode != RESULT_OK || data == null)
                     break;
 
@@ -449,8 +486,6 @@ public class CameraPerformer implements View.OnClickListener {
 
     }
 
-    private boolean isBrowse = false;
-
     private void onBrowse() {
         if (isPermissionsStorage()) {
             if(!isBrowse) {
@@ -461,9 +496,9 @@ public class CameraPerformer implements View.OnClickListener {
                 chooseFile.setType("image/*");
                 intent = Intent.createChooser(chooseFile, "choose_a_file");
                 if (fragment != null)
-                    fragment.startActivityForResult(intent, 1);
+                    fragment.startActivityForResult(intent, BROWSE_REQUEST_CODE);
                 else
-                    appCompatActivity.startActivityForResult(intent, 1);
+                    appCompatActivity.startActivityForResult(intent, BROWSE_REQUEST_CODE);
                 isBrowse = true;
             }
         } else

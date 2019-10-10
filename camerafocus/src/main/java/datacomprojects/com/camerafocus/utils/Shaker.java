@@ -1,4 +1,4 @@
-package datacomprojects.com.camerafocus;
+package datacomprojects.com.camerafocus.utils;
 
 
 import android.animation.AnimatorSet;

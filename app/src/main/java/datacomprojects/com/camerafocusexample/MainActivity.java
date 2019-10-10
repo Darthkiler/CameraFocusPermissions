@@ -2,6 +2,7 @@ package datacomprojects.com.camerafocusexample;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -10,9 +11,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.otaliastudios.cameraview.PictureResult;
 
 import darthkilersprojects.com.log.L;
-import datacomprojects.com.camerafocus.AlertUtils;
+import datacomprojects.com.camerafocus.utils.AlertUtils;
 import datacomprojects.com.camerafocus.CameraPerformer;
-import datacomprojects.com.camerafocus.CameraResultCallBack;
+import datacomprojects.com.camerafocus.utils.CameraResultCallBack;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -27,13 +28,15 @@ public class MainActivity extends AppCompatActivity {
                 .setCamera(findViewById(R.id.camera))
                 .setFlashButton(findViewById(R.id.camera_fragment_flash))
                 .setTakePicture(findViewById(R.id.camera_fragment_take_photo))
+                .setShowErrorAlert(true)
                 .setAlertCameraError(findViewById(R.id.alert_camera_error))
                 .setAlertCameraErrorTitle(R.id.alertCameraErrorTitle)
                 .setAlertCameraErrorBody(R.id.alertCameraErrorBody)
-                .setAlertCameraErrorRefresh(R.id.camera_fragment_error_alert_refresh)
+                .setAlertCameraErrorPositive(R.id.camera_fragment_error_alert_refresh)
                 .setBrowseImageView(findViewById(R.id.camera_fragment_browse))
-                .setPermissionUtils(new AlertUtils.PermissionUtils("qwe","asd","zxc","rty"))
-                //.setUserInactiveAlphaValue(0.8f)
+                .setCameraFocusViewResource(R.drawable.ic_launcher_background)
+                .setPermissionUtils(new AlertUtils.PostPermissionUtils("error","need permission","settings","cancel"))
+                .setInactiveAlphaValue(0.8f)
                 .setTakeSnapshot(true)
                 .setCameraResultCallBack(new CameraResultCallBack() {
 
@@ -55,13 +58,22 @@ public class MainActivity extends AppCompatActivity {
                         L.show(fileName);
                     }
 
+                    @Override
+                    public void onTorchStateChanged(boolean torchOn) {
+                        super.onTorchStateChanged(torchOn);
+                        L.show(torchOn);
+                    }
                 })
                 .build();
-        //cameraPerformer.setCameraFocusViewResource(R.drawable.ic_launcher_background);
-        //cameraPerformer.setSaveImageFilePath();
-        cameraPerformer.setFlashImageResource(R.drawable.ic_launcher_background);
 
+    }
 
+    public void click(View view) {
+        cameraPerformer.closeCameraAndRemoveLifecycle();
+    }
+
+    public void click2(View view) {
+        cameraPerformer.addLifecycle();
     }
 
     @Override
