@@ -23,9 +23,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.OnLifecycleEvent;
 
 import com.otaliastudios.cameraview.CameraException;
 import com.otaliastudios.cameraview.CameraListener;
@@ -141,22 +139,19 @@ public class CameraPerformer {
     //set inactive alpha value for flash button
     public CameraPerformer setInactiveAlphaValue(@FloatRange(from = 0.0, to = 1.0) float inactiveAlphaValue) {
         USER_INACTIVE_ALPHA_VALUE = inactiveAlphaValue;
-        flashButton.setAlpha(USER_INACTIVE_ALPHA_VALUE);
+        if(flashButton.getAlpha() != 1)
+            flashButton.setAlpha(USER_INACTIVE_ALPHA_VALUE);
         return this;
     }
 
     //set the path where the picture will be saved
-    public void setSaveImageFilePath(@NonNull String saveImageFilePath) {
+    public CameraPerformer setSaveImageFilePath(@NonNull String saveImageFilePath) {
         this.saveImageFilePath = saveImageFilePath;
+        return this;
     }
 
     public CameraPerformer setTakeSnapshot(boolean takeSnapshot) {
         this.takeSnapshot = takeSnapshot;
-        return this;
-    }
-
-    public CameraPerformer setFlashImageResource(@DrawableRes int idRes) {
-        flashButton.setImageResource(idRes);
         return this;
     }
 
@@ -366,6 +361,9 @@ public class CameraPerformer {
                     case CameraException.REASON_PICTURE_FAILED:
                         Toast.makeText(context,"Take picture error",Toast.LENGTH_SHORT).show();
                         break;
+                    case CameraException.REASON_UNKNOWN:
+                        camera.close();
+                        camera.destroy();
                     default:
                         if(errorAlert.isNeedToShow())
                             errorAlert.showUnknownErrorAlert();
@@ -415,7 +413,8 @@ public class CameraPerformer {
     }
 
     private void callTorchChangeCallback() {
-        cameraResultCallBack.onTorchStateChanged(camera.getFlash().equals(Flash.TORCH));
+        if(cameraResultCallBack!=null)
+            cameraResultCallBack.onTorchStateChanged(camera.getFlash().equals(Flash.TORCH));
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
