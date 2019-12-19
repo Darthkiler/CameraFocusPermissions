@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.PointF;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
@@ -214,8 +215,8 @@ public class CameraPerformer {
         return this;
     }
 
-    public CameraPerformer setCameraFocusViewResource(@DrawableRes int resId) {
-        cameraFocusView.setImageDrawable(context.getResources().getDrawable(resId));
+    public CameraPerformer setCameraFocusViewDrawable(Drawable drawable) {
+        cameraFocusView.setImageDrawable(drawable);
         return this;
     }
 
