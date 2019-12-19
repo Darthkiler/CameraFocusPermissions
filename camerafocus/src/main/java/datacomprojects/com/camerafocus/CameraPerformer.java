@@ -215,7 +215,7 @@ public class CameraPerformer {
     }
 
     public CameraPerformer setCameraFocusViewResource(@DrawableRes int resId) {
-        cameraFocusView.setImageResource(resId);
+        cameraFocusView.setImageDrawable(context.getResources().getDrawable(resId));
         return this;
     }
 
