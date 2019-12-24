@@ -123,6 +123,8 @@ public class CameraPerformer {
     //
     private boolean isBrowse = false;
 
+    public boolean canTakePhoto = true;
+
     /*
         constructor with parameters - context, activate lifecycle and fragment
         if the fragment is != null, the fragment lifecycle will be used
@@ -240,7 +242,7 @@ public class CameraPerformer {
     }
 
     private void takePhoto() {
-        if (takenPhoto)
+        if (takenPhoto && canTakePhoto)
             return;
 
         if (isPermissionsCamera()) {
@@ -488,7 +490,7 @@ public class CameraPerformer {
 
     private void onBrowse() {
         if (isPermissionsStorage()) {
-            if(!isBrowse) {
+            if(canTakePhoto && !isBrowse) {
                 cameraResultCallBack.onBrowse();
                 Intent chooseFile;
                 Intent intent;
