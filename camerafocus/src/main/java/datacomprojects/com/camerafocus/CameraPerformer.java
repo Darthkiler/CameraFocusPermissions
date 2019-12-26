@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -44,6 +45,7 @@ import java.util.Objects;
 import java.util.Random;
 
 
+import darthkilersprojects.com.log.L;
 import datacomprojects.com.camerafocus.utils.AlertUtils;
 import datacomprojects.com.camerafocus.utils.CameraFocusView;
 import datacomprojects.com.camerafocus.utils.CameraResultCallBack;
@@ -249,12 +251,16 @@ public class CameraPerformer {
             if (errorAlert.isNeedToShow() && errorAlert.isVisible())
                 errorAlert.shake();
             else {
+                L.show(Thread.currentThread().getName());
                 cameraResultCallBack.onStartTakePhoto();
-                if (takeSnapshot)
-                    camera.takePictureSnapshot();
-                else
-                    camera.takePicture();
-                takenPhoto = true;
+                new Thread(() -> {
+                    L.show(Thread.currentThread().getName());
+                    if (takeSnapshot)
+                        camera.takePictureSnapshot();
+                    else
+                        camera.takePicture();
+                    takenPhoto = true;
+                }).start();
             }
         } else
             requestPermissionCamera();

@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
                 .setCameraFocusViewDrawable(getResources().getDrawable(R.drawable.ic_launcher_background))
                 .setPermissionUtils(new AlertUtils.PostPermissionUtils("error","need permission","settings","cancel"))
                 .setInactiveAlphaValue(0.8f)
-                .setTakeSnapshot(true)
+                .setTakeSnapshot(false)
                 .setCameraResultCallBack(new CameraResultCallBack() {
 
                     @Override
@@ -66,6 +66,13 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .build();
 
+        L.show(getExternalMediaDirs());
+        L.show(getExternalFilesDir("images"));
+        L.show(getFilesDir().getAbsolutePath());
+        String s = getFilesDir().getAbsolutePath() + "/qweqwe/asd.mp3";
+        L.show(s.contains(getFilesDir().getAbsolutePath()));
+        L.show(s.contains(getExternalFilesDir("images").getAbsolutePath()));
+        L.show(s.contains(getFilesDir().getAbsolutePath()));
     }
 
     public void click(View view) {
