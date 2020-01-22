@@ -243,7 +243,7 @@ public class CameraPerformer {
         }
     }
 
-    private void takePhoto() {
+    public void takePhoto() {
         if (takenPhoto && canTakePhoto)
             return;
 
