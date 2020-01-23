@@ -38,7 +38,7 @@
         android:background="@color/colorPrimary"
         android:clickable="true"
         android:focusable="true"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/constraintLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

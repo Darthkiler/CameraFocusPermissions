@@ -2,6 +2,7 @@ package datacomprojects.com.camerafocusexample;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
                 .setCamera(findViewById(R.id.camera))
                 .setFlashButton(findViewById(R.id.camera_fragment_flash))
                 .setTakePicture(findViewById(R.id.camera_fragment_take_photo))
+                .setSaveImageFilePath(getExternalFilesDir("images").toString()+"/qwe.jpg")
                 .setShowErrorAlert(true)
                 .setAlertCameraError(findViewById(R.id.alert_camera_error))
                 .setAlertCameraErrorTitle(R.id.alertCameraErrorTitle)
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onImageSaved(String filePath, boolean success) {
                         super.onImageSaved(filePath, success);
                         L.show(filePath);
+                        L.show("success",success);
                     }
 
                     @Override
@@ -66,13 +69,6 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .build();
 
-        L.show(getExternalMediaDirs());
-        L.show(getExternalFilesDir("images"));
-        L.show(getFilesDir().getAbsolutePath());
-        String s = getFilesDir().getAbsolutePath() + "/qweqwe/asd.mp3";
-        L.show(s.contains(getFilesDir().getAbsolutePath()));
-        L.show(s.contains(getExternalFilesDir("images").getAbsolutePath()));
-        L.show(s.contains(getFilesDir().getAbsolutePath()));
     }
 
     public void click(View view) {

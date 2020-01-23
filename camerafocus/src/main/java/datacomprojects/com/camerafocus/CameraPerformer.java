@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -17,7 +16,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.annotation.DrawableRes;
 import androidx.annotation.FloatRange;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
@@ -65,6 +63,8 @@ public class CameraPerformer {
     public static final int GALLERY_PERMISSION = 4;
 
     public static final int BROWSE_REQUEST_CODE = 5;
+
+    public static final int CAMERA_GALLERY_PERMISSION = 6;
 
     //value for all inactive elements defined by user (default = -1)
     private static float USER_INACTIVE_ALPHA_VALUE = -1f;
@@ -229,10 +229,13 @@ public class CameraPerformer {
             saveImageFilePath = context.getApplicationInfo().dataDir + "/" + new Random().nextInt() + new Random().nextBoolean() + "___" + new Random().nextDouble();
 
         flashButton.setAlpha(INACTIVE_ALPHA_VALUE);
-        if (isPermissionsCamera())
+        if (isPermissionsCamera() && (!needStoragePermission() || isPermissionsStorage()))
             photographerInitialize();
         else
-            requestPermissionCamera();
+            if(needStoragePermission())
+                requestCameraStoragePermission();
+            else
+                requestPermissionCamera();
         return this;
     }
 
@@ -243,18 +246,16 @@ public class CameraPerformer {
         }
     }
 
-    public void takePhoto() {
+    private void takePhoto() {
         if (takenPhoto && canTakePhoto)
             return;
 
-        if (isPermissionsCamera()) {
+        if (isPermissionsCamera() && (!needStoragePermission() || isPermissionsStorage())) {
             if (errorAlert.isNeedToShow() && errorAlert.isVisible())
                 errorAlert.shake();
             else {
-                L.show(Thread.currentThread().getName());
                 cameraResultCallBack.onStartTakePhoto();
                 new Thread(() -> {
-                    L.show(Thread.currentThread().getName());
                     if (takeSnapshot)
                         camera.takePictureSnapshot();
                     else
@@ -263,7 +264,10 @@ public class CameraPerformer {
                 }).start();
             }
         } else
-            requestPermissionCamera();
+            if(needStoragePermission())
+                requestCameraStoragePermission();
+            else
+                requestPermissionCamera();
     }
 
     private void onClick(View v) {
@@ -392,7 +396,7 @@ public class CameraPerformer {
                 cameraResultCallBack.onPictureTaken(result, takeSnapshot);
                 File file1 = new File(saveImageFilePath);
                 if(file1.exists())
-                    file1.delete();
+                    L.show(file1.delete());
                 result.toFile(new File(saveImageFilePath), file -> {
                     cameraResultCallBack.onImageSaved(saveImageFilePath, file != null && file.exists());
                     takenPhoto = false;
@@ -432,7 +436,7 @@ public class CameraPerformer {
             return;
 
         switch (requestCode) {
-
+            case CAMERA_GALLERY_PERMISSION:
             case CAMERA_PERMISSION:
                 if (grantResults[0] == PERMISSION_GRANTED) {
                     takePicture.setOnClickListener(null);
@@ -488,8 +492,12 @@ public class CameraPerformer {
                 break;
 
             case CAMERA_PERMISSION:
-                if (isPermissionsCamera())
-                    photographerInitialize();
+                if (needStoragePermission()) {
+                    if (isPermissionsCamera() && isPermissionsStorage())
+                        photographerInitialize();
+                } else
+                    if (isPermissionsCamera())
+                        photographerInitialize();
         }
 
     }
@@ -528,6 +536,15 @@ public class CameraPerformer {
                 fragment.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, GALLERY_PERMISSION);
             else
                 appCompatActivity.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, GALLERY_PERMISSION);
+        }
+    }
+
+    private void requestCameraStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if(fragment != null)
+                fragment.requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, CAMERA_GALLERY_PERMISSION);
+            else
+                appCompatActivity.requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, CAMERA_GALLERY_PERMISSION);
         }
     }
 
@@ -572,6 +589,10 @@ public class CameraPerformer {
     public void addLifecycle() {
         if(isPermissionsCamera())
             camera.setLifecycleOwner(lifecycleOwner);
+    }
+
+    private boolean needStoragePermission() {
+        return !saveImageFilePath.contains(context.getFilesDir().getParent());
     }
 
     public void closeCameraAndRemoveLifecycle() {
