@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
                         super.onImageSaved(filePath, success);
                         L.show(filePath);
                         L.show("success",success);
+                        Toast.makeText(MainActivity.this, success?filePath:"error", Toast.LENGTH_LONG).show();
                     }
 
                     @Override
@@ -59,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onBrowseEnd(boolean success, String fileName) {
                         super.onBrowseEnd(success, fileName);
                         L.show(fileName);
+                        Toast.makeText(MainActivity.this, success?fileName:"error", Toast.LENGTH_LONG).show();
                     }
 
                     @Override

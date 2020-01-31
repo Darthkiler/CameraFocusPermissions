@@ -4,12 +4,11 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.MediaStore;
+import android.os.ParcelFileDescriptor;
 import android.provider.Settings;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,11 +34,13 @@ import com.otaliastudios.cameraview.Preview;
 import com.otaliastudios.cameraview.VideoResult;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Objects;
 import java.util.Random;
 
 
@@ -64,7 +65,7 @@ public class CameraPerformer {
 
     public static final int BROWSE_REQUEST_CODE = 5;
 
-    public static final int CAMERA_GALLERY_PERMISSION = 6;
+    //public static final int CAMERA_GALLERY_PERMISSION = 6;
 
     //value for all inactive elements defined by user (default = -1)
     private static float USER_INACTIVE_ALPHA_VALUE = -1f;
@@ -232,9 +233,9 @@ public class CameraPerformer {
         if (isPermissionsCamera() && (!needStoragePermission() || isPermissionsStorage()))
             photographerInitialize();
         else
-            if(needStoragePermission())
+            /*if(needStoragePermission())
                 requestCameraStoragePermission();
-            else
+            else*/
                 requestPermissionCamera();
         return this;
     }
@@ -264,9 +265,9 @@ public class CameraPerformer {
                 }).start();
             }
         } else
-            if(needStoragePermission())
+            /*if(needStoragePermission())
                 requestCameraStoragePermission();
-            else
+            else*/
                 requestPermissionCamera();
     }
 
@@ -436,7 +437,7 @@ public class CameraPerformer {
             return;
 
         switch (requestCode) {
-            case CAMERA_GALLERY_PERMISSION:
+            //case CAMERA_GALLERY_PERMISSION:
             case CAMERA_PERMISSION:
                 if (grantResults[0] == PERMISSION_GRANTED) {
                     takePicture.setOnClickListener(null);
@@ -475,20 +476,18 @@ public class CameraPerformer {
 
                 takenPhoto = false;
                 Uri uri = data.getData();
-                String filePath = getRealPathFromURI(context, uri);
 
-                new Thread(() -> {
-                    try {
-                        copyFileUsingStream(filePath,saveImageFilePath);
+                try {
+                    FileDescriptor filePath = getRealPathFromURI(context, uri);
+                    copyFileUsingStream(filePath, saveImageFilePath);
+                    appCompatActivity.runOnUiThread(() -> {
                         cameraResultCallBack.onBrowseEnd(true,saveImageFilePath);
-                    }
-                    catch (Exception e)
-                    {
-                        cameraResultCallBack.onBrowseEnd(false,saveImageFilePath);
-
-                    }
-
-                }).start();
+                    });
+                }
+                catch (Exception e)
+                {
+                    cameraResultCallBack.onBrowseEnd(false,saveImageFilePath);
+                }
                 break;
 
             case CAMERA_PERMISSION:
@@ -539,14 +538,14 @@ public class CameraPerformer {
         }
     }
 
-    private void requestCameraStoragePermission() {
+    /*private void requestCameraStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if(fragment != null)
                 fragment.requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, CAMERA_GALLERY_PERMISSION);
             else
                 appCompatActivity.requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, CAMERA_GALLERY_PERMISSION);
         }
-    }
+    }*/
 
     private boolean isPermissionsCamera() {
         return ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PERMISSION_GRANTED;
@@ -556,24 +555,17 @@ public class CameraPerformer {
         return ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
     }
 
-    private static String getRealPathFromURI(Context context, Uri contentUri) {
-        try {
-            Cursor cursor = context.getContentResolver().query(contentUri, new String[] {MediaStore.Images.Media.DATA}, null, null, null);
-            if (Objects.requireNonNull(cursor).moveToFirst()) {
-                int column_index = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
-                String path = column_index != -1 ? cursor.getString(column_index) : null;
-                cursor.close();
-                return path;
-            } else {
-                cursor.close();
-                return null;
-            }
-        } catch (Exception ignore){
-            return null;
+    private static FileDescriptor getRealPathFromURI(Context context, Uri uri) throws FileNotFoundException {
+        ParcelFileDescriptor parcelFileDescriptor =
+                context.getContentResolver().openFileDescriptor(uri, "r");
+        if(parcelFileDescriptor != null) {
+            return parcelFileDescriptor.getFileDescriptor();
         }
+        else
+            return null;
     }
 
-    private static void copyFileUsingStream(String source, String dest) throws Exception {
+    private static void copyFileUsingStream(FileDescriptor source, String dest) throws IOException {
         InputStream is = new FileInputStream(source);
         OutputStream os = new FileOutputStream(dest);
 
