@@ -486,6 +486,7 @@ public class CameraPerformer {
                 }
                 catch (Exception e)
                 {
+                    e.printStackTrace();
                     cameraResultCallBack.onBrowseEnd(false,saveImageFilePath);
                 }
                 break;
