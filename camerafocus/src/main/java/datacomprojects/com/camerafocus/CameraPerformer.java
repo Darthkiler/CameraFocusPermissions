@@ -28,10 +28,10 @@ import com.otaliastudios.cameraview.CameraException;
 import com.otaliastudios.cameraview.CameraListener;
 import com.otaliastudios.cameraview.CameraOptions;
 import com.otaliastudios.cameraview.CameraView;
-import com.otaliastudios.cameraview.Flash;
 import com.otaliastudios.cameraview.PictureResult;
-import com.otaliastudios.cameraview.Preview;
 import com.otaliastudios.cameraview.VideoResult;
+import com.otaliastudios.cameraview.controls.Flash;
+import com.otaliastudios.cameraview.controls.Preview;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -405,8 +405,8 @@ public class CameraPerformer {
             }
 
             @Override
-            public void onFocusStart(@NonNull PointF point) {
-                super.onFocusStart(point);
+            public void onAutoFocusStart(@NonNull PointF point) {
+                super.onAutoFocusStart(point);
                 cameraFocusView.pointFocus(point);
                 if (cameraFocusView.getParent() == null)
                     camera.addView(cameraFocusView);
@@ -415,8 +415,8 @@ public class CameraPerformer {
             }
 
             @Override
-            public void onFocusEnd(boolean successful, @NonNull PointF point) {
-                super.onFocusEnd(successful, point);
+            public void onAutoFocusEnd(boolean successful, @NonNull PointF point) {
+                super.onAutoFocusEnd(successful, point);
                 camera.removeView(cameraFocusView);
 
                 cameraResultCallBack.onFocusEnd(successful, point);

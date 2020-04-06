@@ -21,7 +21,7 @@
         app:cameraAudio="off"
         app:cameraFacing="back"
         app:cameraGesturePinch="zoom"
-        app:cameraGestureTap="focus"
+        app:cameraGestureLongTap="autoFocus"
         app:cameraPlaySounds="false" />
 
     <View
