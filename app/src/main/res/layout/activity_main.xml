@@ -21,7 +21,7 @@
         app:cameraAudio="off"
         app:cameraFacing="back"
         app:cameraGesturePinch="zoom"
-        app:cameraGestureLongTap="autoFocus"
+        app:cameraGestureTap="autoFocus"
         app:cameraPlaySounds="false" />
 
     <View
@@ -154,7 +154,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="click"
-        android:text="Button" />
+        android:text="Button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/button2"
@@ -162,5 +164,6 @@
         android:layout_height="wrap_content"
         android:onClick="click2"
         android:text="Button"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

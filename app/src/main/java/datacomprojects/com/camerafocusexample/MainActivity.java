@@ -1,8 +1,8 @@
 package datacomprojects.com.camerafocusexample;
 
 import android.content.Intent;
+import android.graphics.PointF;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.widget.Toast;
 
@@ -13,8 +13,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.otaliastudios.cameraview.PictureResult;
 
 import darthkilersprojects.com.log.L;
-import datacomprojects.com.camerafocus.utils.AlertUtils;
 import datacomprojects.com.camerafocus.CameraPerformer;
+import datacomprojects.com.camerafocus.utils.AlertUtils;
 import datacomprojects.com.camerafocus.utils.CameraResultCallBack;
 
 
@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        L.show("qwe");
         cameraPerformer = new CameraPerformer(this, this, this, null)
                 .setCamera(findViewById(R.id.camera))
                 .setFlashButton(findViewById(R.id.camera_fragment_flash))
@@ -68,6 +69,18 @@ public class MainActivity extends AppCompatActivity {
                     public void onTorchStateChanged(boolean torchOn) {
                         super.onTorchStateChanged(torchOn);
                         L.show(torchOn);
+                    }
+
+                    @Override
+                    public void onFocusEnd(boolean successful, @NonNull PointF point) {
+                        super.onFocusEnd(successful, point);
+                        L.show("focus end");
+                    }
+
+                    @Override
+                    public void onFocusStart(@NonNull PointF point) {
+                        super.onFocusStart(point);
+                        L.show("focus start");
                     }
                 })
                 .build();
