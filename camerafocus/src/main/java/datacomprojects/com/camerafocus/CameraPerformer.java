@@ -273,8 +273,10 @@ public class CameraPerformer {
 
     private void onClick(View v) {
         if (takePicture != null && v.getId() == takePicture.getId()) {
-            takePhoto();
-            return;
+            if (camera.isOpened()) {
+                takePhoto();
+                return;
+            }
         }
 
         if (flashButton != null && v.getId() == flashButton.getId()) {
