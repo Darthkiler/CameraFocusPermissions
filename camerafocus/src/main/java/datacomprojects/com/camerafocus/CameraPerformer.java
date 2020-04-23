@@ -247,6 +247,10 @@ public class CameraPerformer {
         }
     }
 
+    public void take() {
+        onClick(takePicture);
+    }
+
     private void takePhoto() {
         if (takenPhoto && canTakePhoto)
             return;
