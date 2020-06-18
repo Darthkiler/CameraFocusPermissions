@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
                 .setAlertCameraErrorPositive(R.id.camera_fragment_error_alert_refresh)
                 .setBrowseImageView(findViewById(R.id.camera_fragment_browse))
                 .setCameraFocusViewDrawable(getResources().getDrawable(R.drawable.ic_launcher_background))
-                .setPermissionUtils(new AlertUtils.PostPermissionUtils("error","need permission","settings","cancel"))
+                //.setPermissionUtils(new AlertUtils.PostPermissionUtils("error","need permission","settings","cancel"))
                 .setInactiveAlphaValue(0.8f)
                 .setTakeSnapshot(false)
                 .setCameraResultCallBack(new CameraResultCallBack() {
@@ -84,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .build();
-
     }
 
     public void click(View view) {

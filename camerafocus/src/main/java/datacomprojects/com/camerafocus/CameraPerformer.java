@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
 import android.provider.Settings;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -277,10 +278,8 @@ public class CameraPerformer {
 
     private void onClick(View v) {
         if (takePicture != null && v.getId() == takePicture.getId()) {
-            if (camera.isOpened()) {
-                takePhoto();
-                return;
-            }
+            takePhoto();
+            return;
         }
 
         if (flashButton != null && v.getId() == flashButton.getId()) {
@@ -309,6 +308,7 @@ public class CameraPerformer {
 
         camera.setLifecycleOwner(lifecycleOwner);
         camera.setPreview(Preview.TEXTURE);
+        camera.setOnTouchListener(null);
         if(errorAlert.isNeedToShow())
             errorAlert.setVisibility(View.GONE);
 
@@ -438,7 +438,7 @@ public class CameraPerformer {
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
+        L.show("onRequestPermissionsResult");
         if (grantResults.length == 0)
             return;
 
@@ -450,6 +450,15 @@ public class CameraPerformer {
                     photographerInitialize();
                 } else {
                     takePicture.setOnClickListener(CameraPerformer.this::onClick);
+                    L.show("camera view count", camera.getChildCount());
+                    camera.setOnTouchListener((v, event) -> {
+                        if (event.getAction() == MotionEvent.ACTION_UP)
+                        {
+                            takePhoto();
+                            return true;
+                        }
+                        return false;
+                    });
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         if(!appCompatActivity.shouldShowRequestPermissionRationale(permissions[0]))
                             AlertUtils.showCameraPostPermissionAlert(context, () -> {
@@ -468,6 +477,20 @@ public class CameraPerformer {
             case GALLERY_PERMISSION:
                 if (grantResults[0] == PERMISSION_GRANTED)
                     onBrowse();
+                else {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if(!appCompatActivity.shouldShowRequestPermissionRationale(permissions[0]))
+                            AlertUtils.showStoragePostPermissionAlert(context, () -> {
+                                Intent appSettingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                        Uri.parse("package:" + context.getPackageName()));
+                                if(fragment!=null)
+                                    fragment.startActivityForResult(appSettingsIntent, GALLERY_PERMISSION);
+                                else
+                                    appCompatActivity.startActivityForResult(appSettingsIntent, GALLERY_PERMISSION);
+
+                            },lifecycleOwner,permissionUtils);
+                    }
+                }
                 break;
         }
     }

@@ -23,8 +23,14 @@ public class AlertUtils {
     private static Lifecycle mLifecycle;
     private static LifecycleObserver lifecycleObserver;
 
-    public static void showCameraPostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner) {
+    private static void showCameraPostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner) {
         showPostPermissionAlert(context, positiveRunnable, new PostPermissionUtils("Camera", "%s needs access to %s. To permit %s access, please go to settings", "Settings", "Cancel"));
+
+        setLifecycleOwner(lifecycleOwner);
+    }
+
+    private static void showStoragePostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner) {
+        showPostPermissionAlert(context, positiveRunnable, new PostPermissionUtils("Storage", "%s needs access to %s. To permit %s access, please go to settings", "Settings", "Cancel"));
 
         setLifecycleOwner(lifecycleOwner);
     }
@@ -34,6 +40,13 @@ public class AlertUtils {
             showPostPermissionAlert(context, positiveRunnable,permissionUtils);
         else
             showCameraPostPermissionAlert(context, positiveRunnable, lifecycleOwner);
+    }
+
+    public static void showStoragePostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner, PostPermissionUtils permissionUtils) {
+        if(permissionUtils!=null)
+            showPostPermissionAlert(context, positiveRunnable,permissionUtils);
+        else
+            showStoragePostPermissionAlert(context, positiveRunnable, lifecycleOwner);
     }
 
     private static void showPostPermissionAlert(Context context, Runnable positiveRunnable, PostPermissionUtils permissionUtils) {
