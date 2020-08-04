@@ -481,6 +481,7 @@ public class CameraPerformer {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         if(!appCompatActivity.shouldShowRequestPermissionRationale(permissions[0]))
                             AlertUtils.showStoragePostPermissionAlert(context, () -> {
+                                cameraResultCallBack.onBrowseCancel();
                                 Intent appSettingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                                         Uri.parse("package:" + context.getPackageName()));
                                 if(fragment!=null)
