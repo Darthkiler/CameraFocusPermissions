@@ -488,8 +488,13 @@ public class CameraPerformer {
                                 else
                                     appCompatActivity.startActivityForResult(appSettingsIntent, GALLERY_PERMISSION);
 
-                            },lifecycleOwner,permissionUtils);
-                    }
+                            },
+                                    () -> cameraResultCallBack.onBrowseCancel()
+                                    ,lifecycleOwner,permissionUtils);
+                        else
+                            cameraResultCallBack.onBrowseCancel();
+                    } else
+                        cameraResultCallBack.onBrowseCancel();
                 }
                 break;
         }
@@ -500,8 +505,10 @@ public class CameraPerformer {
         switch (requestCode) {
 
             case BROWSE_REQUEST_CODE:
-                if (resultCode != RESULT_OK || data == null)
+                if (resultCode != RESULT_OK || data == null) {
+                    cameraResultCallBack.onBrowseCancel();
                     break;
+                }
 
                 takenPhoto = false;
                 Uri uri = data.getData();

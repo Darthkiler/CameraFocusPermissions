@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleEventObserver;
@@ -14,6 +15,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.OnLifecycleEvent;
 
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import datacomprojects.com.camerafocus.R;
 
@@ -29,8 +31,8 @@ public class AlertUtils {
         setLifecycleOwner(lifecycleOwner);
     }
 
-    private static void showStoragePostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner) {
-        showPostPermissionAlert(context, positiveRunnable, new PostPermissionUtils("Storage", "%s needs access to %s. To permit %s access, please go to settings", "Settings", "Cancel"));
+    private static void showStoragePostPermissionAlert(Context context, Runnable positiveRunnable, Runnable negativeRunnable, LifecycleOwner lifecycleOwner) {
+        showPostPermissionAlert(context, positiveRunnable, negativeRunnable, new PostPermissionUtils("Storage", "%s needs access to %s. To permit %s access, please go to settings", "Settings", "Cancel"));
 
         setLifecycleOwner(lifecycleOwner);
     }
@@ -42,14 +44,14 @@ public class AlertUtils {
             showCameraPostPermissionAlert(context, positiveRunnable, lifecycleOwner);
     }
 
-    public static void showStoragePostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner, PostPermissionUtils permissionUtils) {
+    public static void showStoragePostPermissionAlert(Context context, Runnable positiveRunnable, Runnable negativeRunnable, LifecycleOwner lifecycleOwner, PostPermissionUtils permissionUtils) {
         if(permissionUtils!=null)
-            showPostPermissionAlert(context, positiveRunnable,permissionUtils);
+            showPostPermissionAlert(context, positiveRunnable, negativeRunnable, permissionUtils);
         else
-            showStoragePostPermissionAlert(context, positiveRunnable, lifecycleOwner);
+            showStoragePostPermissionAlert(context, positiveRunnable, negativeRunnable, lifecycleOwner);
     }
 
-    private static void showPostPermissionAlert(Context context, Runnable positiveRunnable, PostPermissionUtils permissionUtils) {
+    private static void showPostPermissionAlert(Context context, Runnable positiveRunnable, @Nullable Runnable negativeRunnable, PostPermissionUtils permissionUtils) {
         String body = String.format(Locale.getDefault(),
                 permissionUtils.bodyFormat,
                 context.getString(R.string.app_name),
@@ -61,7 +63,11 @@ public class AlertUtils {
                 permissionUtils.posButton,
                 positiveRunnable,
                 permissionUtils.negButton,
-                null);
+                negativeRunnable);
+    }
+
+    private static void showPostPermissionAlert(Context context, Runnable positiveRunnable, PostPermissionUtils permissionUtils) {
+        showPostPermissionAlert(context, positiveRunnable, null, permissionUtils);
     }
 
     private static void showAlertWithTwoButtons(Context context, String body, final String posButton,
@@ -77,14 +83,23 @@ public class AlertUtils {
         positiveButton.setText(posButton);
         negativeButton.setText(negButton);
 
+        AtomicBoolean autoDismiss = new AtomicBoolean(true);
+
         positiveButton.setOnClickListener(v -> {
+            autoDismiss.set(false);
             simpleAlertDialog.dismiss();
             posRunnable.run();
         });
 
         negativeButton.setOnClickListener(v -> {
+            autoDismiss.set(false);
             simpleAlertDialog.dismiss();
             if (negRunnable != null)
+                negRunnable.run();
+        });
+
+        simpleAlertDialog.setOnDismissListener(dialog -> {
+            if (autoDismiss.get() && negRunnable != null)
                 negRunnable.run();
         });
 
