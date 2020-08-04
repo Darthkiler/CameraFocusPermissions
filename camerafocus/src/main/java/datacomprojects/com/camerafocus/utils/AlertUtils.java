@@ -24,32 +24,32 @@ public class AlertUtils {
     private static LifecycleObserver lifecycleObserver;
 
     private static void showCameraPostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner) {
-        showPostPermissionAlert(context, positiveRunnable, new PostPermissionUtils("Camera", "%s needs access to %s. To permit %s access, please go to settings", "Settings", "Cancel"));
+        showPostPermissionAlert(context, positiveRunnable, null, new PostPermissionUtils("Camera", "%s needs access to %s. To permit %s access, please go to settings", "Settings", "Cancel"));
 
         setLifecycleOwner(lifecycleOwner);
     }
 
-    private static void showStoragePostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner) {
-        showPostPermissionAlert(context, positiveRunnable, new PostPermissionUtils("Storage", "%s needs access to %s. To permit %s access, please go to settings", "Settings", "Cancel"));
+    private static void showStoragePostPermissionAlert(Context context, Runnable positiveRunnable, Runnable negativeRunnable, LifecycleOwner lifecycleOwner) {
+        showPostPermissionAlert(context, positiveRunnable, negativeRunnable, new PostPermissionUtils("Storage", "%s needs access to %s. To permit %s access, please go to settings", "Settings", "Cancel"));
 
         setLifecycleOwner(lifecycleOwner);
     }
 
     public static void showCameraPostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner, PostPermissionUtils permissionUtils) {
         if(permissionUtils!=null)
-            showPostPermissionAlert(context, positiveRunnable,permissionUtils);
+            showPostPermissionAlert(context, positiveRunnable, null, permissionUtils);
         else
             showCameraPostPermissionAlert(context, positiveRunnable, lifecycleOwner);
     }
 
-    public static void showStoragePostPermissionAlert(Context context, Runnable positiveRunnable, LifecycleOwner lifecycleOwner, PostPermissionUtils permissionUtils) {
+    public static void showStoragePostPermissionAlert(Context context, Runnable positiveRunnable, Runnable negativeRunnable, LifecycleOwner lifecycleOwner, PostPermissionUtils permissionUtils) {
         if(permissionUtils!=null)
-            showPostPermissionAlert(context, positiveRunnable,permissionUtils);
+            showPostPermissionAlert(context, positiveRunnable, negativeRunnable, permissionUtils);
         else
-            showStoragePostPermissionAlert(context, positiveRunnable, lifecycleOwner);
+            showStoragePostPermissionAlert(context, positiveRunnable, negativeRunnable, lifecycleOwner);
     }
 
-    private static void showPostPermissionAlert(Context context, Runnable positiveRunnable, PostPermissionUtils permissionUtils) {
+    private static void showPostPermissionAlert(Context context, Runnable positiveRunnable, Runnable negativeRunnable, PostPermissionUtils permissionUtils) {
         String body = String.format(Locale.getDefault(),
                 permissionUtils.bodyFormat,
                 context.getString(R.string.app_name),
@@ -61,7 +61,7 @@ public class AlertUtils {
                 permissionUtils.posButton,
                 positiveRunnable,
                 permissionUtils.negButton,
-                null);
+                negativeRunnable);
     }
 
     private static void showAlertWithTwoButtons(Context context, String body, final String posButton,

@@ -82,6 +82,12 @@ public class MainActivity extends AppCompatActivity {
                         super.onFocusStart(point);
                         L.show("focus start");
                     }
+
+                    @Override
+                    public void onBrowseCancel() {
+                        super.onBrowseCancel();
+                        L.show("_____________onBrowseCancel");
+                    }
                 })
                 .build();
     }

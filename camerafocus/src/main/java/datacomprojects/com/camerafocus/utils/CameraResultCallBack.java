@@ -85,6 +85,11 @@ public class CameraResultCallBack {
     }
 
     @CallSuper
+    public void onBrowseCancel() {
+
+    }
+
+    @CallSuper
     public void onTorchStateChanged(boolean torchOn) {
 
     }
