@@ -14,7 +14,6 @@ import com.otaliastudios.cameraview.PictureResult;
 
 import darthkilersprojects.com.log.L;
 import datacomprojects.com.camerafocus.CameraPerformer;
-import datacomprojects.com.camerafocus.utils.AlertUtils;
 import datacomprojects.com.camerafocus.utils.CameraResultCallBack;
 
 
@@ -26,7 +25,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        L.show("qwe");
         cameraPerformer = new CameraPerformer(this, this, this, null)
                 .setCamera(findViewById(R.id.camera))
                 .setFlashButton(findViewById(R.id.camera_fragment_flash))
